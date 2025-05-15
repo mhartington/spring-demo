@@ -1,31 +1,34 @@
-package monostore.routes;
+package monostore.backend.routes;
 
-import monostore.datastore.DataStore;
-import monostore.models.Product;
+import monostore.backend.datastore.DataStore;
+import monostore.backend.models.Product;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/products")
-// @Validated
+@RequestMapping("/api/products")
 public class ProductController {
+
     @Autowired
     private DataStore ds;
+//  ObjectMapper objectMapper = new ObjectMapper();
 
     @GetMapping
-    public List<Product> getAll(@RequestParam(required=false) String category,
-                                 @RequestParam(required=false) String sort) {
+    public Map<String, List<Product>> getAll(@RequestParam(required=false) String category, @RequestParam(required=false) String sort)  {
         // TODO: implement filtering and sorting
-        return ds.products;
+      Map <String, List<Product>> results = new HashMap<>();
+      results.put("products", ds.products);
+//      results.entrySet().stream()
+      return results;
     }
 
     @GetMapping("/{id}")

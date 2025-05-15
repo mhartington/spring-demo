@@ -1,4 +1,4 @@
-package monostore.models;
+package monostore.backend.models;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
