@@ -1,4 +1,4 @@
-package monostore.datastore;
+package monostore.backend.datastore;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -9,10 +9,10 @@ import java.util.Map;
 import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PostConstruct;
-import monostore.models.Cart;
-import monostore.models.Order;
-import monostore.models.Product;
-import monostore.models.User;
+import monostore.backend.models.Cart;
+import monostore.backend.models.Order;
+import monostore.backend.models.Product;
+import monostore.backend.models.User;
 
 @Component
 public class DataStore {

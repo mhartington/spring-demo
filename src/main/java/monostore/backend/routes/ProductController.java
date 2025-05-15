@@ -1,11 +1,10 @@
-package monostore.routes;
+package monostore.backend.routes;
 
-import monostore.datastore.DataStore;
-import monostore.models.Product;
+import monostore.backend.datastore.DataStore;
+import monostore.backend.models.Product;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
