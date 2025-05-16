@@ -16,6 +16,9 @@ public class Product {
     private String image;
     private String category;
     private int stock;
-    private Instant createdAt;
-    private Instant updatedAt;
+    private Instant created_at;
+    private Instant updated_at;
+
+    public String getId() { return id; }
+    public String getName() { return name; }
 }
