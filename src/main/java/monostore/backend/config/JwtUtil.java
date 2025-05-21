@@ -1,41 +1,38 @@
-package monostore.backend.utils;
+package monostore.backend.config;
 
+import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import jakarta.annotation.PostConstruct;
 import java.security.Key;
 import java.util.Date;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
 
 @Component
 public class JwtUtil {
-    @Value("${jwt.secret}")
-    private String secret;
 
-    @Value("${jwt.expiration-ms}")
-    private long expirationMs;
+  private Key key;
 
-    private Key key;
+  @PostConstruct
+  public void init() {
+    String secret = "0a732767d5ee374d4a3478077f84a009863";
+    key = Keys.hmacShaKeyFor(secret.getBytes());
+  }
 
-    @PostConstruct
-    public void init() {
-        key = Keys.hmacShaKeyFor(secret.getBytes());
-        System.out.println("JWT Key initialized");
-        System.out.println(key);
-    }
-
-    public String generateToken(String userId, String email, String role) {
+    public String generateToken(String email, String role) {
+        // Set expiration time to 1 day
+        long oneDayMs = 24 * 60 * 60 * 1000L;
         return Jwts.builder()
-            .setSubject(userId)
+            .setSubject(email)
             .claim("email", email)
             .claim("role", role)
+
             .setIssuedAt(new Date())
-            .setExpiration(new Date(System.currentTimeMillis() + expirationMs))
+            .setExpiration(new Date(System.currentTimeMillis() + oneDayMs))
             .signWith(key)
             .compact();
     }

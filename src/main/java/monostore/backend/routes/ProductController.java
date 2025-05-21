@@ -1,10 +1,8 @@
 package monostore.backend.routes;
 
-import jakarta.validation.Valid;
 import java.util.*;
 import monostore.backend.datastore.DataStore;
 import monostore.backend.models.Product;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,23 +12,31 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/products")
 public class ProductController {
 
-  @Autowired private DataStore ds;
-  //  ObjectMapper objectMapper = new ObjectMapper();
-
   @GetMapping
   public Map<String, List<Product>>
   getAll(@RequestParam(required = false) String category,
          @RequestParam(required = false) String sort) {
-    // TODO: implement filtering and sorting
+
+
     Map<String, List<Product>> results = new HashMap<>();
-    results.put("products", ds.products);
-    //      results.entrySet().stream()
+    if (category != null) {
+      List<Product> filteredProducts = new ArrayList<>();
+      for (Product product : DataStore.products) {
+        if (product.getCategory().equalsIgnoreCase(category)) {
+          filteredProducts.add(product);
+        }
+      }
+      results.put("products", filteredProducts);
+      return results;
+    }
+    
+    results.put("products", DataStore.products);
     return results;
   }
 
   @GetMapping("/{id}")
   public HttpEntity<?> getById(@PathVariable String id) {
-    return ds.products.stream()
+    return DataStore.products.stream()
         .filter(p -> p.getId().equals(id))
         .findFirst()
         .<ResponseEntity<?>>map(p -> ResponseEntity.ok(Collections.singletonMap("product", p)))

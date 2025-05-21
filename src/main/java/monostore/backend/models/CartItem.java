@@ -10,4 +10,5 @@ import lombok.NoArgsConstructor;
 public class CartItem {
     private Product product;
     private int quantity;
+    
 }

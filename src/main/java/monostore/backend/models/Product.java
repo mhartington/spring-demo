@@ -18,7 +18,4 @@ public class Product {
     private int stock;
     private Instant created_at;
     private Instant updated_at;
-
-    public String getId() { return id; }
-    public String getName() { return name; }
 }
