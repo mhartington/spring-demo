@@ -11,7 +11,7 @@ public class FilterConfig {
     public FilterRegistrationBean<AuthMiddleware> authFilter(AuthMiddleware authMiddleware) {
         FilterRegistrationBean<AuthMiddleware> registrationBean = new FilterRegistrationBean<>();
         registrationBean.setFilter(authMiddleware);
-        registrationBean.addUrlPatterns("/api/cart/*");
+        registrationBean.addUrlPatterns("/api/cart/*", "/api/orders/*");
         return registrationBean;
     }
 }

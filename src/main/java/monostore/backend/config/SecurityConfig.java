@@ -58,38 +58,12 @@ public class SecurityConfig {
   public AuthenticationProvider authenticationProvider() {
     DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
     authProvider.setUserDetailsService(customUserDetailsService);
-    authProvider.setPasswordEncoder(passwordEncoder()); // Configurable password encoder
+    authProvider.setPasswordEncoder(passwordEncoder());
     return authProvider;
   }
-
-  @Bean
-  public InMemoryUserDetailsManager inMemoryUserDetailsManager(PasswordEncoder passwordEncoder) {
-    CustomUserDetails userDetails = new CustomUserDetails(
-        1L,
-        "john@example.com",
-        passwordEncoder.encode("password123"),
-        Stream.of("ROLE_USER")
-            .map(SimpleGrantedAuthority::new)
-            .collect(Collectors.toList()));
-            
-    return new InMemoryUserDetailsManager(userDetails);
-  }
-
-  @Bean
-  public UserDetailsService userDetailsService(InMemoryUserDetailsManager inMemoryUserDetailsManager) {
-    return inMemoryUserDetailsManager;
-  }
-
-  // @Bean
-  // public CustomUserDetailsService
-  // customUserDetailsService(InMemoryUserDetailsManager inMemoryUserDetailsManag
-  // er) {
-  // return new CustomUserDetailsService(inMemoryUserDetailsManager);
-  // }
 
   @Bean
   public PasswordEncoder passwordEncoder() {
     return new BCryptPasswordEncoder();
   }
-
 }

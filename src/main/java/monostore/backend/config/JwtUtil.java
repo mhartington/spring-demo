@@ -23,14 +23,14 @@ public class JwtUtil {
     key = Keys.hmacShaKeyFor(secret.getBytes());
   }
 
-    public String generateToken(String email, String role) {
+    public String generateToken(String email, String role, Long id) {
         // Set expiration time to 1 day
         long oneDayMs = 24 * 60 * 60 * 1000L;
         return Jwts.builder()
             .setSubject(email)
             .claim("email", email)
             .claim("role", role)
-
+            .claim("id", id)
             .setIssuedAt(new Date())
             .setExpiration(new Date(System.currentTimeMillis() + oneDayMs))
             .signWith(key)

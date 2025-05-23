@@ -42,7 +42,7 @@ public class AuthMiddleware implements Filter {
 
     try {
       String token = extractToken(httpRequest);
-      
+
       if (token == null) {
         sendUnauthorizedError(httpResponse, MISSING_TOKEN_MESSAGE);
         return;
@@ -51,8 +51,7 @@ public class AuthMiddleware implements Filter {
       Jws<Claims> userClaims = jwtUtil.validateToken(token);
 
       if (userClaims != null) {
-        System.out.println("User claims: " + userClaims.getBody());
-        httpRequest.setAttribute(USER_ATTRIBUTE, userClaims.getBody().toString());
+        httpRequest.setAttribute(USER_ATTRIBUTE, userClaims.getBody());
         chain.doFilter(httpRequest, httpResponse);
       }
     } catch (JwtException e) {

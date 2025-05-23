@@ -3,6 +3,7 @@ package monostore.backend.routes;
 import lombok.Getter;
 import lombok.Setter;
 import monostore.backend.config.JwtUtil;
+import monostore.backend.models.CustomUserDetails;
 
 //import monostore.backend.models.CustomUserDetails;
 import org.springframework.http.HttpStatus;
@@ -36,12 +37,13 @@ public class UserController {
         String email = request.getEmail();
         String password = request.getPassword();
 
-
         UsernamePasswordAuthenticationToken authdUser = new UsernamePasswordAuthenticationToken(email, password);
-
-      Authentication auth = authenticationManager.authenticate(authdUser);
+        
         try {
+            Authentication auth = authenticationManager.authenticate(authdUser);
+      
             SecurityContextHolder.getContext().setAuthentication(auth);
+            CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
 
             // Generate JWT token
             String token = jwtUtil.generateToken(
@@ -49,15 +51,16 @@ public class UserController {
                     auth.getAuthorities().stream()
                             .findFirst()
                             .map(GrantedAuthority::getAuthority)
-                            .orElse("USER")
+                            .orElse("USER"),
+                    userDetails.getId()
             );
 
             return ResponseEntity.ok(Map.of(
                     "message", "Login successful",
                     "username", auth.getName(),
-                    "token", token)
+                    "token", token
+                    )
             );
-
 
         } catch (AuthenticationException ex) {
             return ResponseEntity
