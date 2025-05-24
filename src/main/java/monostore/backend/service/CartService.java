@@ -1,15 +1,14 @@
 package monostore.backend.service;
 
-import monostore.backend.models.Cart;
-import monostore.backend.models.CartItem;
-import monostore.backend.models.Product;
-
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+
+import org.springframework.stereotype.Service;
+
+import monostore.backend.models.Cart;
+import monostore.backend.models.CartItem;
+import monostore.backend.models.Product;
 
 @Service
 public class CartService {
@@ -34,24 +33,27 @@ public class CartService {
     Cart cart = getCartByUserId(userId);
     CartItem cartItem = new CartItem(product, quantity);
 
-    Optional<CartItem> existingItem = cart.getItems().stream()
-      .filter(item -> item.getProduct().getId().equals(product.getId()))
-      .findFirst();
+    Optional<CartItem> existingItem = cart.getItems()
+        .stream()
+        .filter(item -> item.getProduct().getId().equals(product.getId()))
+        .findFirst();
 
     if (existingItem.isPresent()) {
-      existingItem.get().setQuantity(existingItem.get().getQuantity() + quantity);
+      existingItem.get().setQuantity(existingItem.get().getQuantity() +
+          quantity);
     } else {
       cart.getItems().add(cartItem);
     }
 
     // Update the cart total
-    cart.setTotal(cart.getItems().stream()
-      .mapToDouble(item -> item.getProduct().getPrice() * item.getQuantity())
-      .sum());
+    cart.setTotal(
+        cart.getItems()
+            .stream()
+            .mapToDouble(
+                item -> item.getProduct().getPrice() * item.getQuantity())
+            .sum());
     return cart;
-  }
-
-  ;
+  };
 
   public Cart clearCart(String userId) {
     cartStore.remove(userId);
@@ -65,9 +67,10 @@ public class CartService {
       throw new RuntimeException("Invalid quantity");
     }
 
-    Optional<CartItem> itemOpt = cart.getItems().stream()
-      .filter(item -> item.getProduct().getId().equals(productId))
-      .findFirst();
+    Optional<CartItem> itemOpt = cart.getItems()
+        .stream()
+        .filter(item -> item.getProduct().getId().equals(productId))
+        .findFirst();
 
     if (itemOpt.isEmpty()) {
       throw new RuntimeException("Item not found in cart");
@@ -80,10 +83,11 @@ public class CartService {
 
     CartItem item = itemOpt.get();
     item.setQuantity(quantity);
-    // Update the cart total
-    cart.setTotal(cart.getItems().stream()
-      .mapToDouble(i -> i.getProduct().getPrice() * i.getQuantity())
-      .sum());
+    cart.setTotal(
+        cart.getItems()
+            .stream()
+            .mapToDouble(i -> i.getProduct().getPrice() * i.getQuantity())
+            .sum());
 
     return cart;
   }
@@ -93,13 +97,15 @@ public class CartService {
     if (cart == null) {
       throw new RuntimeException("Cart not found");
     }
-    cart.getItems().removeIf(item -> item.getProduct().getId().equals(productId));
+    cart.getItems().removeIf(
+        item -> item.getProduct().getId().equals(productId));
 
-    // Update the cart total
-    cart.setTotal(cart.getItems().stream()
-      .mapToDouble(item -> item.getProduct().getPrice() * item.getQuantity())
-      .sum());
+    cart.setTotal(
+        cart.getItems()
+            .stream()
+            .mapToDouble(
+                item -> item.getProduct().getPrice() * item.getQuantity())
+            .sum());
     return cart;
   }
-
 }
