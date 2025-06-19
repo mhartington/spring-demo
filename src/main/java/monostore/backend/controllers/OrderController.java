@@ -5,18 +5,19 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import io.jsonwebtoken.Claims;
 import monostore.backend.models.Cart;
 import monostore.backend.models.CartItem;
+import monostore.backend.models.CustomUserDetails;
 import monostore.backend.models.Order;
 import monostore.backend.models.OrderRequest;
 import monostore.backend.service.CartService;
@@ -39,16 +40,22 @@ public class OrderController {
 
     // Get all orders for the authenticated user
     @GetMapping
-    public ResponseEntity<List<Order>> getOrders(@RequestAttribute("user") Claims user) {
-        String userId = user.get("id").toString();
+    public ResponseEntity<List<Order>> getOrders() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
+        String userId = userDetails.getId().toString();
+        
         List<Order> orders = orderService.getOrdersByUserId(userId);
         return ResponseEntity.ok(orders);
     }
 
     // Get order by ID for the authenticated user
     @GetMapping("/{id}")
-    public ResponseEntity<?> getOrderById(@RequestAttribute("user") Claims user, @PathVariable String id) {
-        String userId = user.get("id").toString();
+    public ResponseEntity<?> getOrderById(@PathVariable String id) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
+        String userId = userDetails.getId().toString();
+        
         Optional<Order> order = orderService.getOrderByIdAndUserId(id, userId);
 
         if (order.isEmpty()) {
@@ -60,12 +67,11 @@ public class OrderController {
 
     // Create a new order
     @PostMapping
-    public ResponseEntity<?> createOrder(
-      @RequestAttribute("user") Claims user,
-      @RequestBody OrderRequest orderRequest
-    ) {
-
-        String userId = user.get("id").toString();
+    public ResponseEntity<?> createOrder(@RequestBody OrderRequest orderRequest) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
+        String userId = userDetails.getId().toString();
+        
         Cart cart = cartService.getCartByUserId(userId);
 
         if (cart == null || cart.getItems().isEmpty()) {
@@ -88,8 +94,11 @@ public class OrderController {
 
     // Cancel an order (only if it is pending)
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> cancelOrder(@RequestAttribute("user") Claims user, @PathVariable String id) {
-        String userId = user.get("id").toString();
+    public ResponseEntity<?> cancelOrder(@PathVariable String id) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
+        String userId = userDetails.getId().toString();
+        
         Optional<Order> order = orderService.getOrderByIdAndUserId(id, userId);
 
         if (order.isEmpty()) {

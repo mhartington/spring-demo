@@ -5,20 +5,21 @@ import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import io.jsonwebtoken.Claims;
 import lombok.Getter;
 import lombok.Setter;
 import monostore.backend.models.Cart;
+import monostore.backend.models.CustomUserDetails;
 import monostore.backend.models.Product;
 import monostore.backend.service.CartService;
 import monostore.backend.service.ProductService;
@@ -36,19 +37,22 @@ public class CartController {
   }
 
   @GetMapping
-  public ResponseEntity<?> getCart(@RequestAttribute("user") Claims user) {
-    String id = user.get("id").toString();
-    Cart cart = cartService.getCartByUserId(id);
+  public ResponseEntity<?> getCart() {
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
+    String userId = userDetails.getId().toString();
+    
+    Cart cart = cartService.getCartByUserId(userId);
     return ResponseEntity.ok(Map.of("cart", cart));
   }
 
   // Add item to cart
   @PostMapping("/items")
-  public ResponseEntity<?> addItem(
-    @RequestAttribute("user") Claims user,
-    @RequestBody CartItemRequest request) {
-
-    String userId = user.get("id").toString();
+  public ResponseEntity<?> addItem(@RequestBody CartItemRequest request) {
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
+    String userId = userDetails.getId().toString();
+    
     Product product = productService.getProductById(request.productId);
 
     if (request.getQuantity() > product.getStock()) {
@@ -65,11 +69,12 @@ public class CartController {
   // Update cart item
   @PutMapping("/items/{productId}")
   public ResponseEntity<?> updateItem(
-    @RequestAttribute("user") Claims user,
     @PathVariable String productId,
     @RequestBody CartItemRequest request) {
 
-    String userId = user.get("id").toString();
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
+    String userId = userDetails.getId().toString();
 
     try {
       Cart cart = cartService.updateItemInCart(userId, productId, request.quantity);
@@ -84,10 +89,10 @@ public class CartController {
   }
 
   @DeleteMapping("/items/{productId}")
-  public ResponseEntity<?> removeItem(
-    @RequestAttribute("user") Claims user,
-    @PathVariable String productId) {
-    String userId = user.get("id").toString();
+  public ResponseEntity<?> removeItem(@PathVariable String productId) {
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
+    String userId = userDetails.getId().toString();
 
     try {
       Cart cart = cartService.removeItemFromCart(userId, productId);
@@ -103,8 +108,11 @@ public class CartController {
 
   // // Clear cart
   @DeleteMapping
-  public ResponseEntity<?> clearCart(@RequestAttribute("user") Claims user) {
-    String userId = user.get("id").toString();
+  public ResponseEntity<?> clearCart() {
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
+    String userId = userDetails.getId().toString();
+    
     Cart cart = cartService.clearCart(userId);
     return ResponseEntity.ok(Map.of(
       "message", "Cart cleared successfully",

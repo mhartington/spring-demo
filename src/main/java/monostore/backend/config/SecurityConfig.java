@@ -1,34 +1,23 @@
 package monostore.backend.config;
 
-import monostore.backend.models.CustomUserDetails;
 import monostore.backend.service.CustomUserDetailsService;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.Customizer;
-
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.User.UserBuilder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 
 @Configuration
+@EnableWebSecurity
 public class SecurityConfig {
 
   private final CustomUserDetailsService customUserDetailsService;
@@ -42,9 +31,20 @@ public class SecurityConfig {
     http
         .cors(Customizer.withDefaults())
         .csrf(AbstractHttpConfigurer::disable)
-        .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-        .authorizeHttpRequests(authz -> authz.anyRequest().permitAll())
-        .httpBasic(Customizer.withDefaults());
+        .authorizeHttpRequests(authz -> authz
+            .requestMatchers("/api/users/login").permitAll()
+            .requestMatchers("/api/products/**").permitAll()
+            .requestMatchers("/").permitAll()
+            .requestMatchers("/api/**").authenticated()
+        )
+
+        .formLogin(AbstractHttpConfigurer::disable)
+        .httpBasic(AbstractHttpConfigurer::disable)
+        .exceptionHandling(exceptions -> exceptions
+            .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
+        )
+        .authenticationProvider(authenticationProvider());
+    
     return http.build();
   }
 
@@ -55,7 +55,7 @@ public class SecurityConfig {
   }
 
   @Bean
-  public AuthenticationProvider authenticationProvider() {
+  public DaoAuthenticationProvider authenticationProvider() {
     DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
     authProvider.setUserDetailsService(customUserDetailsService);
     authProvider.setPasswordEncoder(passwordEncoder());
