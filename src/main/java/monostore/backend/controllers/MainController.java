@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class MainController {
 
   @GetMapping("/")
-  public Object gretting() {
+  public ResponseEntity<?> greeting() {
     return ResponseEntity.ok(Map.of(
         "message", "E-commerce API is Running", "version", "1.0.0", "endpoints",
         Map.of("products", "/api/products", "users", "/api/users", "cart",

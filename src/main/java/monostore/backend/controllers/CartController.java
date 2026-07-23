@@ -18,6 +18,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import lombok.Getter;
 import lombok.Setter;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import monostore.backend.models.Cart;
 import monostore.backend.models.CustomUserDetails;
 import monostore.backend.models.Product;
@@ -48,7 +51,7 @@ public class CartController {
 
   // Add item to cart
   @PostMapping("/items")
-  public ResponseEntity<?> addItem(@RequestBody CartItemRequest request) {
+  public ResponseEntity<?> addItem(@Valid @RequestBody CartItemRequest request) {
     Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
     String userId = userDetails.getId().toString();
@@ -124,8 +127,10 @@ public class CartController {
   @Getter
   public static class CartItemRequest {
     @JsonProperty(required = true)
+    @NotBlank
     private String productId;
     @JsonProperty(required = true)
+    @Min(1)
     private int quantity;
   }
 }

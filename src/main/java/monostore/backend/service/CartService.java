@@ -1,6 +1,6 @@
 package monostore.backend.service;
 
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -15,7 +15,7 @@ public class CartService {
 
   private final ProductService productService;
   // Simulating an in-memory datastore for carts
-  private final Map<String, Cart> cartStore = new HashMap<>();
+  private final Map<String, Cart> cartStore = new ConcurrentHashMap<>();
 
   public CartService(ProductService productService) {
     this.productService = productService;
@@ -29,7 +29,8 @@ public class CartService {
     return initializeCart(userId);
   }
 
-  public Cart addItemToCart(String userId, Product product, Integer quantity) {
+  public synchronized Cart addItemToCart(String userId, Product product, Integer quantity) {
+    if (quantity == null || quantity < 1) throw new IllegalArgumentException("Invalid quantity");
     Cart cart = getCartByUserId(userId);
     CartItem cartItem = new CartItem(product, quantity);
 
@@ -39,9 +40,11 @@ public class CartService {
         .findFirst();
 
     if (existingItem.isPresent()) {
+      if (existingItem.get().getQuantity() + quantity > product.getStock()) throw new IllegalArgumentException("Not enough stock available");
       existingItem.get().setQuantity(existingItem.get().getQuantity() +
           quantity);
     } else {
+      if (quantity > product.getStock()) throw new IllegalArgumentException("Not enough stock available");
       cart.getItems().add(cartItem);
     }
 
@@ -61,7 +64,7 @@ public class CartService {
   }
 
   public Cart updateItemInCart(String userId, String productId, int quantity) {
-    Cart cart = cartStore.get(userId);
+    Cart cart = getCartByUserId(userId);
 
     if (quantity < 1) {
       throw new RuntimeException("Invalid quantity");

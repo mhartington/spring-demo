@@ -3,6 +3,7 @@ package monostore.backend.controllers;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import jakarta.validation.Valid;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -67,7 +68,7 @@ public class OrderController {
 
     // Create a new order
     @PostMapping
-    public ResponseEntity<?> createOrder(@RequestBody OrderRequest orderRequest) {
+    public ResponseEntity<?> createOrder(@Valid @RequestBody OrderRequest orderRequest) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
         String userId = userDetails.getId().toString();

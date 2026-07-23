@@ -4,7 +4,7 @@ import monostore.backend.models.*;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.util.ArrayList;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 public class OrderService {
 
   // Simulating an in-memory datastore for orders
-  private final List<Order> orderStore = new ArrayList<>();
+  private final List<Order> orderStore = new CopyOnWriteArrayList<>();
 
   /**
    * Retrieves all orders for a specific user.
@@ -50,7 +50,6 @@ public class OrderService {
    */
   public Order createOrder(String userId, Cart cart, OrderRequest orderRequest) {
 
-    System.out.println("Order Request: " + orderRequest);
 
 
     Order newOrder = new Order();

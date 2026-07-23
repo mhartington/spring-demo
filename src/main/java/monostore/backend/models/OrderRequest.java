@@ -1,18 +1,15 @@
 package monostore.backend.models;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.web.bind.annotation.GetMapping;
 
-import java.util.List;
 
 @Data
 public class OrderRequest {
 
-  @NotBlank(message = "Shipping address is required")
+  @NotNull(message = "Shipping address is required")
   private Address shippingAddress;
 
   @NotBlank(message = "Payment method is required")
