@@ -49,10 +49,6 @@ public class OrderService {
    * @return The created Order.
    */
   public Order createOrder(String userId, Cart cart, OrderRequest orderRequest) {
-
-    System.out.println("Order Request: " + orderRequest);
-
-
     Order newOrder = new Order();
     newOrder.setId(generateOrderId());
     newOrder.setUserId(userId);

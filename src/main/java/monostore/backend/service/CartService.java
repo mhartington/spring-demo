@@ -30,19 +30,27 @@ public class CartService {
   }
 
   public Cart addItemToCart(String userId, Product product, Integer quantity) {
+    if (quantity == null || quantity < 1) {
+      throw new IllegalArgumentException("Invalid quantity");
+    }
+
     Cart cart = getCartByUserId(userId);
-    CartItem cartItem = new CartItem(product, quantity);
 
     Optional<CartItem> existingItem = cart.getItems()
         .stream()
         .filter(item -> item.getProduct().getId().equals(product.getId()))
         .findFirst();
 
+    int currentQuantity = existingItem.map(CartItem::getQuantity).orElse(0);
+    if (quantity > product.getStock() - currentQuantity) {
+      throw new IllegalArgumentException("Not enough stock available");
+    }
+
     if (existingItem.isPresent()) {
       existingItem.get().setQuantity(existingItem.get().getQuantity() +
           quantity);
     } else {
-      cart.getItems().add(cartItem);
+      cart.getItems().add(new CartItem(product, quantity));
     }
 
     // Update the cart total
@@ -64,7 +72,11 @@ public class CartService {
     Cart cart = cartStore.get(userId);
 
     if (quantity < 1) {
-      throw new RuntimeException("Invalid quantity");
+      throw new IllegalArgumentException("Invalid quantity");
+    }
+
+    if (cart == null) {
+      throw new IllegalArgumentException("Item not found in cart");
     }
 
     Optional<CartItem> itemOpt = cart.getItems()
@@ -73,12 +85,12 @@ public class CartService {
         .findFirst();
 
     if (itemOpt.isEmpty()) {
-      throw new RuntimeException("Item not found in cart");
+      throw new IllegalArgumentException("Item not found in cart");
     }
 
     Product product = productService.getProductById(productId);
     if (quantity > product.getStock()) {
-      throw new RuntimeException("Not enough stock available");
+      throw new IllegalArgumentException("Not enough stock available");
     }
 
     CartItem item = itemOpt.get();
@@ -95,7 +107,7 @@ public class CartService {
   public Cart removeItemFromCart(String userId, String productId) {
     Cart cart = getCartByUserId(userId);
     if (cart == null) {
-      throw new RuntimeException("Cart not found");
+      throw new IllegalArgumentException("Cart not found");
     }
     cart.getItems().removeIf(
         item -> item.getProduct().getId().equals(productId));

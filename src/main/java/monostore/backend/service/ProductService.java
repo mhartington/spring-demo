@@ -1,7 +1,7 @@
 package monostore.backend.service;
 
 import java.time.Instant;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -12,7 +12,7 @@ import monostore.backend.models.Product;
 @Service
 public class ProductService {
 
-  public final List<Product> productStore = Arrays.asList(
+  public final List<Product> productStore = new ArrayList<>(List.of(
       new Product(
           "1", "Premium Wireless Headphones",
           "High-quality wireless headphones with noise cancellation", 199.99,
@@ -37,7 +37,7 @@ public class ProductService {
           "5", "Wireless Gaming Mouse",
           "High-performance wireless gaming mouse", 79.99,
           "https://images.pexels.com/photos/5082581/pexels-photo-5082581.jpeg",
-          "electronics", 30, Instant.now(), null));
+          "electronics", 30, Instant.now(), null)));
 
   public void updateProductStock(String productId, int adjustmentValue) {
     Optional<Product> productOptional =

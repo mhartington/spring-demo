@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -67,7 +68,7 @@ public class OrderController {
 
     // Create a new order
     @PostMapping
-    public ResponseEntity<?> createOrder(@RequestBody OrderRequest orderRequest) {
+    public ResponseEntity<?> createOrder(@Valid @RequestBody OrderRequest orderRequest) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
         String userId = userDetails.getId().toString();
@@ -78,10 +79,14 @@ public class OrderController {
             return ResponseEntity.badRequest().body("Cannot create order with an empty cart");
         }
 
-        // Create the order
-        Order newOrder = orderService.createOrder(userId, cart, orderRequest);
+        for (CartItem item : cart.getItems()) {
+            if (item.getQuantity() < 1 ||
+                item.getQuantity() > productService.getProductById(item.getProduct().getId()).getStock()) {
+                return ResponseEntity.badRequest().body("Not enough stock available");
+            }
+        }
 
-        // Deduct stock from products
+        Order newOrder = orderService.createOrder(userId, cart, orderRequest);
         for (CartItem item : cart.getItems()) {
             productService.updateProductStock(item.getProduct().getId(), -item.getQuantity());
         }
