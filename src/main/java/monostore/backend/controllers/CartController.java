@@ -4,6 +4,9 @@ import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -48,29 +51,27 @@ public class CartController {
 
   // Add item to cart
   @PostMapping("/items")
-  public ResponseEntity<?> addItem(@RequestBody CartItemRequest request) {
+  public ResponseEntity<?> addItem(@Valid @RequestBody CartItemRequest request) {
     Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
     String userId = userDetails.getId().toString();
     
-    Product product = productService.getProductById(request.productId);
-
-    if (request.getQuantity() > product.getStock()) {
-      return ResponseEntity.badRequest().body("Not enough stock available");
+    try {
+      Product product = productService.getProductById(request.productId);
+      Cart cart = cartService.addItemToCart(userId, product, request.getQuantity());
+      return ResponseEntity.ok(Map.of(
+          "cart", cart,
+          "message", "Item added to cart"));
+    } catch (IllegalArgumentException e) {
+      return ResponseEntity.badRequest().body(e.getMessage());
     }
-    Cart cart = cartService.addItemToCart(userId, product, request.getQuantity());
-
-    return ResponseEntity.ok(Map.of(
-      "cart", cart,
-      "message", "Item added to cart"));
-
   }
 
   // Update cart item
   @PutMapping("/items/{productId}")
   public ResponseEntity<?> updateItem(
     @PathVariable String productId,
-    @RequestBody CartItemRequest request) {
+    @Valid @RequestBody CartItemRequest request) {
 
     Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
@@ -82,7 +83,7 @@ public class CartController {
       return ResponseEntity.ok(Map.of(
         "cart", cart,
         "message", "Cart Item Updated"));
-    } catch (RuntimeException e) {
+    } catch (IllegalArgumentException e) {
       return ResponseEntity.badRequest().body(e.getMessage());
     }
 
@@ -100,7 +101,7 @@ public class CartController {
         "cart", cart,
         "message", "Item removed from the cart"));
 
-    } catch (RuntimeException e) {
+    } catch (IllegalArgumentException e) {
       return ResponseEntity.badRequest().body(e.getMessage());
     }
 
@@ -124,8 +125,10 @@ public class CartController {
   @Getter
   public static class CartItemRequest {
     @JsonProperty(required = true)
+    @NotBlank
     private String productId;
     @JsonProperty(required = true)
+    @Min(1)
     private int quantity;
   }
 }

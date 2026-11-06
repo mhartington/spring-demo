@@ -30,19 +30,28 @@ public class CartService {
   }
 
   public Cart addItemToCart(String userId, Product product, Integer quantity) {
+    if (quantity == null || quantity < 1) {
+      throw new IllegalArgumentException("Invalid quantity");
+    }
+
+    Product storedProduct = productService.getProductById(product.getId());
     Cart cart = getCartByUserId(userId);
-    CartItem cartItem = new CartItem(product, quantity);
 
     Optional<CartItem> existingItem = cart.getItems()
         .stream()
-        .filter(item -> item.getProduct().getId().equals(product.getId()))
+        .filter(item -> item.getProduct().getId().equals(storedProduct.getId()))
         .findFirst();
 
+    long updatedQuantity = existingItem.map(item -> (long) item.getQuantity() + quantity)
+        .orElse((long) quantity);
+    if (updatedQuantity > storedProduct.getStock()) {
+      throw new IllegalArgumentException("Not enough stock available");
+    }
+
     if (existingItem.isPresent()) {
-      existingItem.get().setQuantity(existingItem.get().getQuantity() +
-          quantity);
+      existingItem.get().setQuantity((int) updatedQuantity);
     } else {
-      cart.getItems().add(cartItem);
+      cart.getItems().add(new CartItem(storedProduct, quantity));
     }
 
     // Update the cart total
@@ -53,7 +62,7 @@ public class CartService {
                 item -> item.getProduct().getPrice() * item.getQuantity())
             .sum());
     return cart;
-  };
+  }
 
   public Cart clearCart(String userId) {
     cartStore.remove(userId);
@@ -61,24 +70,23 @@ public class CartService {
   }
 
   public Cart updateItemInCart(String userId, String productId, int quantity) {
-    Cart cart = cartStore.get(userId);
-
     if (quantity < 1) {
-      throw new RuntimeException("Invalid quantity");
+      throw new IllegalArgumentException("Invalid quantity");
     }
 
+    Cart cart = getCartByUserId(userId);
     Optional<CartItem> itemOpt = cart.getItems()
         .stream()
         .filter(item -> item.getProduct().getId().equals(productId))
         .findFirst();
 
     if (itemOpt.isEmpty()) {
-      throw new RuntimeException("Item not found in cart");
+      throw new IllegalArgumentException("Item not found in cart");
     }
 
     Product product = productService.getProductById(productId);
     if (quantity > product.getStock()) {
-      throw new RuntimeException("Not enough stock available");
+      throw new IllegalArgumentException("Not enough stock available");
     }
 
     CartItem item = itemOpt.get();

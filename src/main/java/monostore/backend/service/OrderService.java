@@ -7,6 +7,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -50,9 +51,6 @@ public class OrderService {
    */
   public Order createOrder(String userId, Cart cart, OrderRequest orderRequest) {
 
-    System.out.println("Order Request: " + orderRequest);
-
-
     Order newOrder = new Order();
     newOrder.setId(generateOrderId());
     newOrder.setUserId(userId);
@@ -83,6 +81,6 @@ public class OrderService {
    * @return A unique string ID.
    */
   private String generateOrderId() {
-    return "ORDER-" + Instant.now().toEpochMilli();
+    return "ORDER-" + UUID.randomUUID();
   }
 }
